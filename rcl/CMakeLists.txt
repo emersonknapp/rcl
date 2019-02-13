@@ -30,6 +30,12 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra)
 endif()
 
+# disable strncpy -> strncpy_s warnings
+if(MSVC AND MSVC_VERSION GREATER_EQUAL 1700)
+  add_definitions(/D _CRT_SECURE_NO_WARNINGS)
+endif()
+
+
 set(${PROJECT_NAME}_sources
   src/rcl/arguments.c
   src/rcl/client.c
