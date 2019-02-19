@@ -34,9 +34,32 @@ static int putenv_wrapper(const char * env_var)
 #endif
 }
 
+static int unsetenv_wrapper(const char * var_name)
+{
+#ifdef _WIN32
+  // On windows, putenv("VAR=") deletes VAR from environment
+  std::string var(var_name);
+  var += "=";
+  return _putenv(var.c_str());
+#else
+  return unsetenv(var_name);
+#endif
+}
+
+class test_rcl_get_secure_root : public ::testing::Test
+{
+protected:
+  void SetUp() override
+  {
+    // Always make sure the variable we set is unset at the beginning of a test
+    unsetenv_wrapper(ROS_SECURITY_ROOT_DIRECTORY_VAR_NAME);
+    unsetenv_wrapper(ROS_SECURITY_NODE_DIRECTORY_VAR_NAME);
+    unsetenv_wrapper(ROS_SECURITY_LOOKUP_TYPE_VAR_NAME);
+  }
+};
+
 TEST(test_rcl_get_secure_root, failureScenarios) {
   rcl_allocator_t allocator = rcl_get_default_allocator();
-  /* Before setting the environment variable */
   ASSERT_EQ(rcl_get_secure_root(TEST_NODE_NAME, TEST_NODE_NAMESPACE, &allocator),
     (char *) NULL);
 
